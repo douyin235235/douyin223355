@@ -1,28 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>跳转微信</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点击图片跳转微信</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #fff;
+    }
+    .img-wrap {
+      cursor: pointer;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .img-wrap:active { transform: scale(0.97); }
+    .img-wrap img {
+      display: block;
+      width: 90vw;
+      max-width: 380px;
+      height: auto;
+    }
+    .tip {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #bbb;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .copy-btn {
+      margin-top: 12px;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 999px;
+      background: #07C160; /* 微信绿 */
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .copy-btn:active { opacity: 0.8; }
+    .qrcode {
+      margin-top: 18px;
+      display: none;
+      background: #fff;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .qrcode img { width: 180px; height: 180px; display: block; }
+    .qrcode.show { display: block; }
+  </style>
 </head>
 <body>
-    <!-- 核心跳转链接 -->
-    <a href="weixin://">点击跳转微信</a>
 
-    <!-- 备用方案（关键，防止链接被拦截） -->
-    <p>如果你没有自动跳转，可以复制微信号：XXXXX</p>
-    
-    <script>
-        // 检测是否为微信内置浏览器
-        const isWeixin = /MicroMessenger/i.test(navigator.userAgent);
-        
-        if (isWeixin) {
-            // 在微信内，可以直接使用官方推荐的链接
-            window.location.href = "weixin://dl/business/?t=XXXXX";
-        } else {
-            // 在非微信环境，提示用户
-            alert('请在微信中打开此页面');
+  <!-- 你的图片，点击后尝试跳转微信 -->
+  <div class="img-wrap" id="jumpImg">
+    <img src="your-photo.jpg" alt="点击跳转微信">
+  </div>
+
+  <div class="tip">
+    点击上方图片尝试打开微信<br>
+    如果没反应，请复制微信号或扫码添加
+  </div>
+
+  <button class="copy-btn" id="copyBtn">复制微信号：your_wechat_id</button>
+
+  <!-- 二维码备用方案（可选） -->
+  <div class="qrcode" id="qrcodeBox">
+    <img src="your-qrcode.png" alt="微信二维码">
+  </div>
+
+  <script>
+    // ====== 在这里配置你的微信号 / 微信跳转链接 ======
+    const WECHAT_ID = "your_wechat_id";          // 你的微信号
+    const WECHAT_SCHEME = "weixin://";           // 通用唤起协议
+    // 如果是小程序，可替换为: "weixin://dl/business/?t=你的小程序ticket"
+    // ==============================================
+
+    const imgWrap = document.getElementById('jumpImg');
+    const copyBtn = document.getElementById('copyBtn');
+    const qrcodeBox = document.getElementById('qrcodeBox');
+
+    // 检测是否在微信内置浏览器
+    function isWeixin() {
+      return /MicroMessenger/i.test(navigator.userAgent);
+    }
+
+    // 点击图片：尝试唤起微信
+    imgWrap.addEventListener('click', function () {
+      if (isWeixin()) {
+        // 已在微信内，无法再"跳转到微信"，直接提示
+        alert("你已经在微信中啦～");
+        return;
+      }
+
+      // 非微信环境，尝试用 weixin:// 唤起
+      const start = Date.now();
+      window.location.href = WECHAT_SCHEME;
+
+      // 如果 1.5 秒后页面还在，说明唤起失败，展示备用方案
+      setTimeout(function () {
+        if (Date.now() - start < 2000 && !document.hidden) {
+          // 唤起失败：显示二维码 + 提示复制
+          qrcodeBox.classList.add('show');
+          alert("未能自动打开微信，请复制微信号或扫码添加～");
         }
-    </script>
+      }, 1500);
+    });
+
+    // 复制微信号
+    copyBtn.addEventListener('click', function () {
+      const text = WECHAT_ID;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.textContent = "已复制 ✓";
+          setTimeout(() => copyBtn.textContent = "复制微信号：" + text, 2000);
+        });
+      } else {
+        // 兼容老浏览器
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        copyBtn.textContent = "已复制 ✓";
+        setTimeout(() => copyBtn.textContent = "复制微信号：" + text, 2000);
+      }
+    });
+  </script>
 </body>
 </html>
