@@ -1,141 +1,697 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>点击图片跳转微信</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #1a1a1a;
-      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-      color: #fff;
-    }
-    .img-wrap {
-      cursor: pointer;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      transition: transform 0.2s;
-    }
-    .img-wrap:active { transform: scale(0.97); }
-    .img-wrap img {
-      display: block;
-      width: 90vw;
-      max-width: 380px;
-      height: auto;
-    }
-    .tip {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #bbb;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .copy-btn {
-      margin-top: 12px;
-      padding: 10px 24px;
-      border: none;
-      border-radius: 999px;
-      background: #07C160; /* 微信绿 */
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    .copy-btn:active { opacity: 0.8; }
-    .qrcode {
-      margin-top: 18px;
-      display: none;
-      background: #fff;
-      padding: 10px;
-      border-radius: 12px;
-    }
-    .qrcode img { width: 180px; height: 180px; display: block; }
-    .qrcode.show { display: block; }
-  </style>
-</head>
-<body>
-
-  <!-- 你的图片，点击后尝试跳转微信 -->
-  <div class="img-wrap" id="jumpImg">
-    <img src="your-photo.jpg" alt="点击跳转微信">
-  </div>
-
-  <div class="tip">
-    点击上方图片尝试打开微信<br>
-    如果没反应，请复制微信号或扫码添加
-  </div>
-
-  <button class="copy-btn" id="copyBtn">复制微信号：your_wechat_id</button>
-
-  <!-- 二维码备用方案（可选） -->
-  <div class="qrcode" id="qrcodeBox">
-    <img src="your-qrcode.png" alt="微信二维码">
-  </div>
-
-  <script>
-    // ====== 在这里配置你的微信号 / 微信跳转链接 ======
-    const WECHAT_ID = "your_wechat_id";          // 你的微信号
-    const WECHAT_SCHEME = "weixin://";           // 通用唤起协议
-    // 如果是小程序，可替换为: "weixin://dl/business/?t=你的小程序ticket"
-    // ==============================================
-
-    const imgWrap = document.getElementById('jumpImg');
-    const copyBtn = document.getElementById('copyBtn');
-    const qrcodeBox = document.getElementById('qrcodeBox');
-
-    // 检测是否在微信内置浏览器
-    function isWeixin() {
-      return /MicroMessenger/i.test(navigator.userAgent);
-    }
-
-    // 点击图片：尝试唤起微信
-    imgWrap.addEventListener('click', function () {
-      if (isWeixin()) {
-        // 已在微信内，无法再"跳转到微信"，直接提示
-        alert("你已经在微信中啦～");
-        return;
-      }
-
-      // 非微信环境，尝试用 weixin:// 唤起
-      const start = Date.now();
-      window.location.href = WECHAT_SCHEME;
-
-      // 如果 1.5 秒后页面还在，说明唤起失败，展示备用方案
-      setTimeout(function () {
-        if (Date.now() - start < 2000 && !document.hidden) {
-          // 唤起失败：显示二维码 + 提示复制
-          qrcodeBox.classList.add('show');
-          alert("未能自动打开微信，请复制微信号或扫码添加～");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>手机壳工坊 | iPhone 17 Pro 真机边框设计</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=ZCOOL+KuaiLe&family=Gaegu&display=swap" rel="stylesheet">
+    <style>
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        button { transition: all 0.2s ease; }
+        canvas { cursor: grab; user-select: none; touch-action: none; }
+        canvas:active { cursor: grabbing; }
+        .canvas-wrapper {
+            background: #f0f2f5;
+            border-radius: 2rem;
+            padding: 0.75rem;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.12);
+            display: inline-block;
+            position: relative;
+            max-width: 100%;
+            overflow-x: auto;
+            text-align: center;
         }
-      }, 1500);
-    });
+        .center-tip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            padding: 1rem 1.2rem;
+            text-align: center;
+            pointer-events: none;
+            z-index: 20;
+            width: 220px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .center-tip i { font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display: block; }
+        .tip-main { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+        .tip-sub { font-size: 0.7rem; color: #475569; }
+        .tip-last { font-size: 0.65rem; color: #94a3b8; margin-top: 0.25rem; }
+        .toast-msg {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            color: white; padding: 8px 18px; border-radius: 40px; font-size: 13px;
+            z-index: 999; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+            font-weight: 500;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #eff3f8;
+            transition: all 0.2s;
+        }
+        .tool-card:hover {
+            border-color: #e2e8f0;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+        .list-scroll {
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .preview-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        .preview-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-3 md:p-5 font-sans">
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-4 md:p-5 grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <!-- 左侧工具栏 -->
+            <div class="lg:col-span-1 space-y-4">
+                <!-- 上传区 -->
+                <div class="space-y-3">
+                    <div class="border-2 border-dashed border-green-400 rounded-xl p-2.5 text-center hover:border-green-600 transition-colors bg-green-50/40">
+                        <input type="file" id="uploadBg" accept="image/*" class="hidden">
+                        <label for="uploadBg" class="cursor-pointer block">
+                            <i class="fa fa-cloud-upload text-2xl text-green-600 mb-1"></i>
+                            <p class="text-gray-800 font-semibold text-sm">📱 上传背景底图</p>
+                            <p class="text-gray-500 text-xs mt-0.5">画布尺寸 = 图片原始尺寸</p>
+                        </label>
+                    </div>
+                    <div class="border-2 border-dashed border-indigo-300 rounded-xl p-2.5 text-center hover:border-indigo-500 transition-colors bg-indigo-50/20">
+                        <input type="file" id="uploadOverlay" accept="image/*" class="hidden">
+                        <label for="uploadOverlay" class="cursor-pointer block">
+                            <i class="fa fa-picture-o text-2xl text-indigo-500 mb-1"></i>
+                            <p class="text-gray-800 font-semibold text-sm">✨ 上传叠加图 (无限添加)</p>
+                            <p class="text-gray-500 text-xs mt-0.5">支持 Ctrl+V 粘贴图片</p>
+                        </label>
+                    </div>
+                </div>
 
-    // 复制微信号
-    copyBtn.addEventListener('click', function () {
-      const text = WECHAT_ID;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-          copyBtn.textContent = "已复制 ✓";
-          setTimeout(() => copyBtn.textContent = "复制微信号：" + text, 2000);
-        });
-      } else {
-        // 兼容老浏览器
-        const input = document.createElement('input');
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-        copyBtn.textContent = "已复制 ✓";
-        setTimeout(() => copyBtn.textContent = "复制微信号：" + text, 2000);
-      }
-    });
-  </script>
+                <!-- 缩放 -->
+                <div class="bg-gray-50 rounded-xl p-3 shadow-sm">
+                    <div class="flex justify-between items-center mb-1">
+                        <p class="text-xs font-semibold text-gray-700">🔍 缩放大小 (选中对象)</p>
+                        <span id="scaleValue" class="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">100%</span>
+                    </div>
+                    <input type="range" id="scaleRange" min="10" max="500" value="100" class="w-full h-1.5 bg-gray-200 rounded-lg accent-green-600">
+                    <p class="text-[10px] text-gray-400 italic mt-1">*调节底图/叠加图/文字的缩放比例</p>
+                </div>
+
+                <!-- 一键排版 -->
+                <div class="bg-gray-50 rounded-xl p-3 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-700 flex items-center gap-1 mb-2"><i class="fa fa-object-group"></i> 🧩 一键排版 (选中对象)</p>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button id="alignLeft" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">左对齐</button>
+                        <button id="alignRight" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">右对齐</button>
+                        <button id="alignTop" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">上对齐</button>
+                        <button id="alignBottom" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">下对齐</button>
+                        <button id="centerH" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">水平居中</button>
+                        <button id="centerV" class="py-1.5 bg-white border border-gray-200 rounded-lg text-xs hover:bg-blue-500 hover:text-white">垂直居中</button>
+                    </div>
+                </div>
+
+                <!-- 边框颜色 + 重置 -->
+                <div class="bg-gray-50 rounded-xl p-3 shadow-sm space-y-3">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-700 mb-1">🎨 iPhone 17 Pro 金属边框颜色</p>
+                        <div class="flex items-center gap-2 mb-1">
+                            <input type="color" id="borderColorPicker" value="#8E8E93" class="w-7 h-7 rounded border">
+                            <span class="text-[10px] text-gray-500">保存/预览时生效</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mt-1">
+                            <button data-color="#8E8E93" class="border-color-preset w-6 h-6 rounded-full border shadow-sm" style="background:#8E8E93;"></button>
+                            <button data-color="#D4AF37" class="border-color-preset w-6 h-6 rounded-full" style="background:#D4AF37;"></button>
+                            <button data-color="#C0C0C0" class="border-color-preset w-6 h-6 rounded-full" style="background:#C0C0C0;"></button>
+                            <button data-color="#2C2C2E" class="border-color-preset w-6 h-6 rounded-full" style="background:#2C2C2E;"></button>
+                            <button data-color="#FF3B30" class="border-color-preset w-6 h-6 rounded-full" style="background:#FF3B30;"></button>
+                            <button data-color="#007AFF" class="border-color-preset w-6 h-6 rounded-full" style="background:#007AFF;"></button>
+                        </div>
+                    </div>
+                    <button id="resetAll" class="w-full py-1.5 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 text-xs font-medium border border-stone-300">
+                        <i class="fa fa-refresh mr-1"></i> 重置所有图层位置/缩放/旋转
+                    </button>
+                    <button id="clearStorageBtn" class="w-full py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">🗑️ 清除存储并重置</button>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <button id="saveImg" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                        <i class="fa fa-download"></i> 保存设计图 (iPhone.jpg)
+                    </button>
+                    <button id="previewImg" class="w-full py-2.5 preview-btn text-white rounded-xl font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                        <i class="fa fa-eye"></i> 预览设计图 (新窗口查看)
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-400 text-center">✨ 自动保存所有编辑 | 预览/保存时添加 iPhone 17 Pro 金属边框<br>⚠️ 若下载后仍提示“有害”，请右键文件 → 属性 → 解除锁定</p>
+            </div>
+
+            <!-- 右侧区域 -->
+            <div class="lg:col-span-3 flex flex-col gap-4">
+                <!-- 工具卡片栏 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="tool-card p-3">
+                        <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm border-b pb-1.5 mb-2"><i class="fa fa-layers text-indigo-500"></i> 图层操控</h3>
+                        <div class="space-y-2">
+                            <p class="text-xs font-semibold text-gray-700">🎯 当前选中对象</p>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button id="selectBg" class="py-1 bg-green-600 text-white rounded-lg text-xs font-medium shadow-sm">底图</button>
+                                <button id="selectOverlayHint" class="py-1 bg-white border border-gray-300 rounded-lg text-xs">叠加图</button>
+                                <button id="selectTextHint" class="py-1 bg-white border border-gray-300 rounded-lg text-xs">文字</button>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-600 mb-1">🖼️ 叠加图片列表 (点击选中)</p>
+                                <div id="overlayLayersList" class="list-scroll space-y-1 text-xs scrollbar-hide border rounded-md p-1 bg-gray-50 mb-2"></div>
+                                <p class="text-xs text-gray-600 mb-1">📄 文字图层列表 (点击选中)</p>
+                                <div id="textLayersList" class="list-scroll space-y-1 text-xs scrollbar-hide border rounded-md p-1 bg-gray-50"></div>
+                                <button id="deleteSelectedBtn" class="mt-2 w-full py-1.5 bg-rose-100 text-rose-700 rounded-md text-xs hover:bg-rose-200">🗑️ 删除当前选中的图层</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tool-card p-3">
+                        <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm border-b pb-1.5 mb-2"><i class="fa fa-sort-amount-asc"></i> 📌 图层顺序</h3>
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <button id="toFront" class="py-2 bg-white border border-gray-200 rounded-lg text-xs shadow-sm hover:bg-indigo-50"><i class="fa fa-arrow-up mr-1"></i> 置顶</button>
+                            <button id="toBack" class="py-2 bg-white border border-gray-200 rounded-lg text-xs shadow-sm hover:bg-indigo-50"><i class="fa fa-arrow-down mr-1"></i> 置底</button>
+                        </div>
+                        <div class="mt-3 text-[11px] text-gray-500 bg-gray-50 p-2 rounded-md">
+                            <i class="fa fa-info-circle"></i> 图层越靠上显示优先级越高
+                        </div>
+                    </div>
+
+                    <div class="tool-card p-3">
+                        <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm border-b pb-1.5 mb-2"><i class="fa fa-font text-indigo-500"></i> ✍️ 文字工坊</h3>
+                        <div class="space-y-2">
+                            <input type="text" id="textInput" placeholder="输入文字 / 特殊符号 ✨★♫" class="w-full text-sm border rounded-lg p-1.5 mb-1">
+                            <div class="flex gap-2 mb-2">
+                                <input type="color" id="textColorPicker" value="#1E293B" class="w-8 h-8 rounded border">
+                                <select id="fontSelect" class="text-xs border rounded p-1 flex-1 bg-white">
+                                    <option value="'PingFang SC', 'Microsoft YaHei', sans-serif">默认黑体</option>
+                                    <option value="'Georgia', serif">Georgia 优雅衬线</option>
+                                    <option value="'Noto Serif SC', serif">宋风 Noto Serif</option>
+                                    <option value="'ZCOOL KuaiLe', cursive">快乐体</option>
+                                    <option value="'Gaegu', cursive">可爱手写体</option>
+                                    <option value="'Courier New', monospace">等宽代码</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="addTextBtn" class="flex-1 bg-indigo-600 text-white py-1.5 rounded-lg text-xs font-medium shadow">➕ 添加文字</button>
+                                <button id="updateTextBtn" class="flex-1 bg-amber-500 text-white py-1.5 rounded-lg text-xs font-medium shadow">✏️ 更新文字</button>
+                            </div>
+                            <div class="flex gap-2 mt-1">
+                                <button id="textRotateLeft" class="flex-1 bg-gray-200 hover:bg-gray-300 py-1.5 rounded text-xs"><i class="fa fa-undo"></i> 左转90°</button>
+                                <button id="textRotateRight" class="flex-1 bg-gray-200 hover:bg-gray-300 py-1.5 rounded text-xs"><i class="fa fa-repeat"></i> 右转90°</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 画布展示区 -->
+                <div class="flex justify-center items-center">
+                    <div class="canvas-wrapper" style="position: relative;">
+                        <canvas id="editCanvas" class="bg-white shadow-2xl rounded-3xl block mx-auto" style="max-width:100%; height:auto; cursor:move; border-radius:1.5rem;"></canvas>
+                        <div id="emptyTip" class="center-tip" style="display: none;">
+                            <i class="fa fa-image"></i>
+                            <p class="tip-main">✨ 上传背景图确定画布尺寸</p>
+                            <p class="tip-sub">可叠加无限图片文字，独立控制</p>
+                            <p class="tip-last">预览/保存自动添加iPhone 17 Pro真机边框</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="toastMsg" class="toast-msg"></div>
+
+    <script>
+        (function(){
+            // ------------------- 全局变量 -------------------
+            let CANVAS_W = 390, CANVAS_H = 844;
+            let bgOriginalW = 390, bgOriginalH = 844, bgScale = 1.0;
+            const canvas = document.getElementById('editCanvas');
+            const ctx = canvas.getContext('2d');
+            const emptyTip = document.getElementById('emptyTip');
+            const toast = document.getElementById('toastMsg');
+            const showToast = (msg, dur=1500) => { toast.innerText = msg; toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', dur); };
+            
+            let borderColor = "#8E8E93";
+            let backgroundImg = null;      // { img, x, y, scale, rotate, originW, originH, isWhitePlaceholder }
+            let overlayImages = [];          // { id, img, x, y, scale, rotate, zIndex, originW, originH }
+            let textLayers = [];              // { id, content, color, fontFamily, fontSizeBase, scale, rotate, x, y, w, h, zIndex }
+            let nextOverlayId = 100;
+            let nextTextId = 200;
+            
+            let activeType = 'bg';      // 'bg', 'overlay', 'text'
+            let activeOverlayId = null;
+            let activeTextId = null;
+            
+            let isDragging = false;
+            let dragOffset = { x: 0, y: 0 };
+            let saveTimer = null;
+            
+            // 辅助函数
+            function clampRect(x, y, w, h) {
+                let newX = Math.max(0, Math.min(x, CANVAS_W - w));
+                let newY = Math.max(0, Math.min(y, CANVAS_H - h));
+                return { x: newX, y: newY };
+            }
+            
+            function updateTextBounds(txt) {
+                if (!txt.content) return;
+                const finalSize = (txt.fontSizeBase || 34) * txt.scale;
+                ctx.save();
+                ctx.font = `${finalSize}px ${txt.fontFamily}`;
+                const metrics = ctx.measureText(txt.content);
+                txt.w = metrics.width;
+                txt.h = finalSize * 1.2;
+                ctx.restore();
+            }
+            
+            // 绘制主画布 (仅内容，不包含最终边框)
+            function drawCanvas() {
+                ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+                const allItems = [];
+                if (backgroundImg) allItems.push({ type: 'bg', data: backgroundImg, zIndex: 1 });
+                overlayImages.forEach(ov => allItems.push({ type: 'overlay', data: ov, zIndex: ov.zIndex }));
+                textLayers.forEach(txt => allItems.push({ type: 'text', data: txt, zIndex: txt.zIndex }));
+                allItems.sort((a,b) => a.zIndex - b.zIndex);
+                
+                for(let item of allItems) {
+                    if(item.type === 'bg') {
+                        const d = item.data;
+                        const w = d.originW * d.scale, h = d.originH * d.scale;
+                        const cx = d.x + w/2, cy = d.y + h/2;
+                        ctx.save();
+                        ctx.translate(cx, cy);
+                        ctx.rotate(d.rotate * Math.PI/180);
+                        ctx.drawImage(d.img, -w/2, -h/2, w, h);
+                        ctx.restore();
+                    } else if(item.type === 'overlay') {
+                        const ov = item.data;
+                        const w = ov.originW * ov.scale, h = ov.originH * ov.scale;
+                        const cx = ov.x + w/2, cy = ov.y + h/2;
+                        ctx.save();
+                        ctx.translate(cx, cy);
+                        ctx.rotate(ov.rotate * Math.PI/180);
+                        ctx.drawImage(ov.img, -w/2, -h/2, w, h);
+                        ctx.restore();
+                    } else if(item.type === 'text') {
+                        const txt = item.data;
+                        const finalSize = (txt.fontSizeBase || 34) * txt.scale;
+                        ctx.save();
+                        ctx.translate(txt.x + txt.w/2, txt.y + txt.h/2);
+                        ctx.rotate(txt.rotate * Math.PI/180);
+                        ctx.font = `${finalSize}px ${txt.fontFamily}`;
+                        ctx.fillStyle = txt.color;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(txt.content, 0, 0);
+                        ctx.restore();
+                    }
+                }
+                // 显示提示
+                const hasDesign = (overlayImages.length > 0 || textLayers.length > 0 || (backgroundImg && !backgroundImg.isWhitePlaceholder));
+                emptyTip.style.display = hasDesign ? 'none' : 'flex';
+            }
+            
+            // 命中测试
+            function hitTestOverlay(px, py, ov) {
+                const w = ov.originW * ov.scale, h = ov.originH * ov.scale;
+                return (px >= ov.x && px <= ov.x + w && py >= ov.y && py <= ov.y + h);
+            }
+            function hitTestText(px, py, txt) {
+                if (!txt.content) return false;
+                return (px >= txt.x && px <= txt.x + txt.w && py >= txt.y && py <= txt.y + txt.h);
+            }
+            
+            function getMousePos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CANVAS_W / rect.width, scaleY = CANVAS_H / rect.height;
+                let clientX, clientY;
+                if(e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+                else { clientX = e.clientX; clientY = e.clientY; }
+                let canvasX = (clientX - rect.left) * scaleX;
+                let canvasY = (clientY - rect.top) * scaleY;
+                canvasX = Math.min(Math.max(0, canvasX), CANVAS_W);
+                canvasY = Math.min(Math.max(0, canvasY), CANVAS_H);
+                return { x: canvasX, y: canvasY };
+            }
+            
+            function updateActiveUI() {
+                const bgBtn = document.getElementById('selectBg');
+                const ovHint = document.getElementById('selectOverlayHint');
+                if(activeType === 'bg') {
+                    bgBtn.classList.add('bg-green-600','text-white'); bgBtn.classList.remove('bg-white','border-gray-300');
+                    ovHint.classList.remove('bg-indigo-600','text-white'); ovHint.classList.add('bg-white','border-gray-300');
+                } else if(activeType === 'overlay') {
+                    ovHint.classList.add('bg-indigo-600','text-white'); ovHint.classList.remove('bg-white','border-gray-300');
+                    bgBtn.classList.remove('bg-green-600','text-white'); bgBtn.classList.add('bg-white','border-gray-300');
+                } else {
+                    bgBtn.classList.remove('bg-green-600','text-white'); bgBtn.classList.add('bg-white','border-gray-300');
+                    ovHint.classList.remove('bg-indigo-600','text-white'); ovHint.classList.add('bg-white','border-gray-300');
+                }
+                let currentScale = 1;
+                if(activeType === 'text' && activeTextId) {
+                    const txt = textLayers.find(t => t.id === activeTextId);
+                    if(txt) currentScale = txt.scale;
+                } else if(activeType === 'overlay' && activeOverlayId) {
+                    const ov = overlayImages.find(o => o.id === activeOverlayId);
+                    if(ov) currentScale = ov.scale;
+                } else if(activeType === 'bg' && backgroundImg && !backgroundImg.isWhitePlaceholder) {
+                    currentScale = bgScale;
+                }
+                const percent = Math.round(currentScale * 100);
+                const range = document.getElementById('scaleRange');
+                if(range) { range.value = percent; document.getElementById('scaleValue').innerText = percent + '%'; }
+            }
+            
+            function renderOverlayListUI() {
+                const container = document.getElementById('overlayLayersList');
+                if (!container) return;
+                if (overlayImages.length === 0) {
+                    container.innerHTML = '<div class="text-gray-400 text-center py-1">✨ 暂无叠加图，点击上传</div>';
+                    return;
+                }
+                container.innerHTML = overlayImages.map(ov => `
+                    <div class="layer-item flex justify-between items-center p-1 rounded ${activeType === 'overlay' && activeOverlayId === ov.id ? 'bg-blue-100 border border-blue-400' : 'bg-white'}">
+                        <span class="truncate max-w-[100px] text-xs">叠加图 ${ov.id}</span>
+                        <button class="select-overlay-btn text-indigo-600 text-xs font-medium px-2" data-id="${ov.id}">选中</button>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.select-overlay-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = parseInt(btn.getAttribute('data-id'));
+                        activeType = 'overlay';
+                        activeOverlayId = id;
+                        activeTextId = null;
+                        updateActiveUI();
+                        renderOverlayListUI();
+                        renderTextListUI();
+                        drawCanvas();
+                        showToast(`已选中叠加图 ${id}`, 800);
+                    });
+                });
+            }
+            
+            function renderTextListUI() {
+                const container = document.getElementById('textLayersList');
+                if (!container) return;
+                if (textLayers.length === 0) {
+                    container.innerHTML = '<div class="text-gray-400 text-center py-1">✨ 暂无文字，点击添加</div>';
+                    return;
+                }
+                container.innerHTML = textLayers.map(t => `
+                    <div class="layer-item flex justify-between items-center p-1 rounded ${activeType === 'text' && activeTextId === t.id ? 'bg-blue-100 border border-blue-400' : 'bg-white'}">
+                        <span class="truncate max-w-[100px] text-xs">${t.content.length > 8 ? t.content.slice(0,6)+'..' : t.content}</span>
+                        <button class="select-text-btn text-indigo-600 text-xs font-medium px-2" data-id="${t.id}">选中</button>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.select-text-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = parseInt(btn.getAttribute('data-id'));
+                        activeType = 'text';
+                        activeTextId = id;
+                        activeOverlayId = null;
+                        const txt = textLayers.find(t => t.id === id);
+                        if(txt) {
+                            document.getElementById('textInput').value = txt.content;
+                            document.getElementById('textColorPicker').value = txt.color;
+                            document.getElementById('fontSelect').value = txt.fontFamily;
+                        }
+                        updateActiveUI();
+                        renderOverlayListUI();
+                        renderTextListUI();
+                        drawCanvas();
+                        showToast(`已选中文字: ${txt?.content}`, 800);
+                    });
+                });
+            }
+            
+            function modifyAndRedraw(callback) { callback(); drawCanvas(); autoSave(); updateActiveUI(); renderOverlayListUI(); renderTextListUI(); }
+            function autoSave() { if(saveTimer) clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ saveStateToLocal(); showToast('✓ 自动保存',800); },300); }
+            
+            // 调整画布尺寸（背景缩放）
+            function setCanvasSizeByScale(newScale, preserveRelative = true) {
+                if (newScale === bgScale && CANVAS_W === bgOriginalW * newScale && CANVAS_H === bgOriginalH * newScale) return false;
+                const oldW = CANVAS_W, oldH = CANVAS_H;
+                const newW = bgOriginalW * newScale, newH = bgOriginalH * newScale;
+                if (newW <= 0 || newH <= 0) return false;
+                CANVAS_W = newW; CANVAS_H = newH; bgScale = newScale;
+                canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+                if (preserveRelative && oldW > 0 && oldH > 0) {
+                    for(let ov of overlayImages) {
+                        const oldCenterX = ov.x + (ov.originW * ov.scale)/2, oldCenterY = ov.y + (ov.originH * ov.scale)/2;
+                        const percentX = oldCenterX / oldW, percentY = oldCenterY / oldH;
+                        const newCenterX = percentX * CANVAS_W, newCenterY = percentY * CANVAS_H;
+                        const newDispW = (ov.originW * ov.scale) * (CANVAS_W / oldW);
+                        const newScaleImg = newDispW / ov.originW;
+                        ov.scale = newScaleImg;
+                        let newX = newCenterX - (ov.originW * newScaleImg)/2, newY = newCenterY - (ov.originH * newScaleImg)/2;
+                        const clamped = clampRect(newX, newY, ov.originW * newScaleImg, ov.originH * newScaleImg);
+                        ov.x = clamped.x; ov.y = clamped.y;
+                    }
+                    for(let txt of textLayers) {
+                        const oldCenterX = txt.x + txt.w/2, oldCenterY = txt.y + txt.h/2;
+                        const percentX = oldCenterX / oldW, percentY = oldCenterY / oldH;
+                        const newCenterX = percentX * CANVAS_W, newCenterY = percentY * CANVAS_H;
+                        const newW_txt = txt.w * (CANVAS_W / oldW);
+                        const scaleRatio = newW_txt / txt.w;
+                        txt.scale = txt.scale * scaleRatio;
+                        updateTextBounds(txt);
+                        let newX = newCenterX - txt.w/2, newY = newCenterY - txt.h/2;
+                        const clamped = clampRect(newX, newY, txt.w, txt.h);
+                        txt.x = clamped.x; txt.y = clamped.y;
+                    }
+                }
+                if(backgroundImg) {
+                    backgroundImg.scale = 1; backgroundImg.x = 0; backgroundImg.y = 0;
+                    backgroundImg.originW = CANVAS_W; backgroundImg.originH = CANVAS_H;
+                }
+                updateActiveUI(); drawCanvas(); autoSave();
+                return true;
+            }
+            
+            function loadBackgroundFromURL(dataURL) {
+                const img = new Image();
+                img.onload = () => {
+                    bgOriginalW = img.width; bgOriginalH = img.height; bgScale = 1.0;
+                    CANVAS_W = bgOriginalW; CANVAS_H = bgOriginalH;
+                    canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+                    backgroundImg = { img: img, x: 0, y: 0, scale: 1, rotate: 0, originW: CANVAS_W, originH: CANVAS_H, isWhitePlaceholder: false };
+                    // 重新约束已有图层位置
+                    for(let ov of overlayImages) { let clamped = clampRect(ov.x, ov.y, ov.originW * ov.scale, ov.originH * ov.scale); ov.x = clamped.x; ov.y = clamped.y; }
+                    for(let txt of textLayers) { let clamped = clampRect(txt.x, txt.y, txt.w, txt.h); txt.x = clamped.x; txt.y = clamped.y; }
+                    activeType = 'bg'; activeOverlayId = null; activeTextId = null;
+                    updateActiveUI(); renderOverlayListUI(); renderTextListUI(); drawCanvas(); autoSave();
+                    showToast(`背景已设置，画布 ${CANVAS_W} x ${CANVAS_H}`, 1800);
+                };
+                img.src = dataURL;
+            }
+            
+            function addOverlayFromImage(imgElement) {
+                const newId = nextOverlayId++;
+                let scale = Math.min(0.6, CANVAS_W * 0.7 / imgElement.width);
+                scale = Math.max(0.2, scale);
+                const initW = imgElement.width * scale, initH = imgElement.height * scale;
+                let x = (CANVAS_W - initW) / 2, y = CANVAS_H * 0.3;
+                const clamped = clampRect(x, y, initW, initH);
+                const maxZ = Math.max(0, ...overlayImages.map(o=>o.zIndex), ...textLayers.map(t=>t.zIndex), 10);
+                overlayImages.push({ id: newId, img: imgElement, x: clamped.x, y: clamped.y, scale: scale, rotate: 0, zIndex: maxZ + 1, originW: imgElement.width, originH: imgElement.height });
+                activeType = 'overlay'; activeOverlayId = newId; activeTextId = null;
+                updateActiveUI(); renderOverlayListUI(); renderTextListUI(); drawCanvas(); autoSave();
+                showToast(`叠加图 ${newId} 已添加`, 1200);
+            }
+            function loadOverlayFromURL(dataURL) { const img = new Image(); img.onload = () => addOverlayFromImage(img); img.src = dataURL; }
+            
+            async function createWhiteBackgroundImage(w, h) {
+                const off = document.createElement('canvas'); off.width = w; off.height = h;
+                const octx = off.getContext('2d'); octx.fillStyle = '#FFFFFF'; octx.fillRect(0, 0, w, h);
+                return new Promise((resolve) => { off.toBlob((blob) => { const img = new Image(); img.onload = () => resolve(img); img.src = URL.createObjectURL(blob); }); });
+            }
+            
+            function addNewText(content, color, fontFamily) {
+                let x = CANVAS_W/2 - 70, y = CANVAS_H/2 - 50;
+                const baseSize = Math.min(48, Math.max(28, CANVAS_W/10));
+                const newId = nextTextId++;
+                const txtObj = { id: newId, content, color, fontFamily, fontSizeBase: baseSize, scale: 0.85, rotate:0, x, y, w: 140, h: 55, zIndex: Math.max(...overlayImages.map(o=>o.zIndex), ...textLayers.map(t=>t.zIndex), 2) + 1 };
+                updateTextBounds(txtObj);
+                const clamped = clampRect(txtObj.x, txtObj.y, txtObj.w, txtObj.h);
+                txtObj.x = clamped.x; txtObj.y = clamped.y;
+                textLayers.push(txtObj);
+                activeType = 'text'; activeTextId = txtObj.id; activeOverlayId = null;
+                document.getElementById('textInput').value = content;
+                updateActiveUI(); renderTextListUI(); drawCanvas(); autoSave();
+                showToast("文字已添加", 800);
+            }
+            function updateCurrentText(content, color, fontFamily) {
+                if(activeType==='text' && activeTextId){
+                    const txt=textLayers.find(t=>t.id===activeTextId);
+                    if(txt){ txt.content=content; txt.color=color; txt.fontFamily=fontFamily; updateTextBounds(txt); const clamped=clampRect(txt.x,txt.y,txt.w,txt.h); txt.x=clamped.x; txt.y=clamped.y; drawCanvas(); renderTextListUI(); autoSave(); showToast("文字已更新",800); }
+                } else showToast("请先选中文字",800);
+            }
+            function deleteCurrentLayer(){
+                if(activeType==='overlay'&&activeOverlayId){ overlayImages=overlayImages.filter(ov=>ov.id!==activeOverlayId); activeOverlayId=null; activeType='bg'; renderOverlayListUI(); drawCanvas(); autoSave(); showToast("已删除叠加图",800); }
+                else if(activeType==='text'&&activeTextId){ textLayers=textLayers.filter(t=>t.id!==activeTextId); activeTextId=null; activeType='bg'; renderTextListUI(); drawCanvas(); autoSave(); showToast("已删除文字",800); }
+                else showToast("没有选中任何可删除的图层",800);
+            }
+            
+            async function saveStateToLocal() { /* 简易存储版本，不丢失主要数据 */
+                const state = { CANVAS_W, CANVAS_H, bgOriginalW, bgOriginalH, bgScale, borderColor, overlayImages: overlayImages.map(ov => ({ ...ov, img: null })), textLayers, nextOverlayId, nextTextId, activeType, activeOverlayId, activeTextId };
+                localStorage.setItem('iPhone17Pro_Designer', JSON.stringify(state));
+            }
+            async function loadStateFromLocal() { return false; } // 简化，保留白板启动
+            
+            // ---------- 通用：绘制最终效果（带金属边框）并返回 Blob/DataURL ----------
+            function drawFinalWithFrame(quality = 0.95) {
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = CANVAS_W; finalCanvas.height = CANVAS_H;
+                const fctx = finalCanvas.getContext('2d');
+                // 白色背景填充（避免透明区域变黑）
+                fctx.fillStyle = '#FFFFFF'; fctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+                const allItems = [];
+                if(backgroundImg) allItems.push({ type: 'bg', data: backgroundImg, zIndex: 1 });
+                overlayImages.forEach(ov => allItems.push({ type: 'overlay', data: ov, zIndex: ov.zIndex }));
+                textLayers.forEach(txt => allItems.push({ type: 'text', data: txt, zIndex: txt.zIndex }));
+                allItems.sort((a,b)=>a.zIndex-b.zIndex);
+                for(let item of allItems){
+                    if(item.type === 'bg' || item.type === 'overlay') {
+                        const d = item.data; const w = d.originW * d.scale, h = d.originH * d.scale;
+                        const cx = d.x + w/2, cy = d.y + h/2;
+                        fctx.save(); fctx.translate(cx, cy); fctx.rotate(d.rotate * Math.PI/180);
+                        fctx.drawImage(d.img, -w/2, -h/2, w, h); fctx.restore();
+                    } else if(item.type === 'text') {
+                        const txt = item.data; const fs = (txt.fontSizeBase||34)*txt.scale;
+                        fctx.save(); fctx.translate(txt.x+txt.w/2, txt.y+txt.h/2); fctx.rotate(txt.rotate*Math.PI/180);
+                        fctx.font = `${fs}px ${txt.fontFamily}`; fctx.fillStyle = txt.color; fctx.textAlign = 'center'; fctx.textBaseline = 'middle';
+                        fctx.fillText(txt.content, 0, 0); fctx.restore();
+                    }
+                }
+                // 叠加iPhone 17 Pro 金属边框
+                drawIPhone17ProFrame(fctx, CANVAS_W, CANVAS_H, borderColor);
+                // 返回 Blob (便于新窗口预览)
+                return new Promise((resolve) => {
+                    finalCanvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
+                });
+            }
+
+            function drawIPhone17ProFrame(ctx, w, h, frameColor) {
+                const radius = Math.min(w * 0.12, 48, h * 0.08);
+                const borderWidth = Math.max(4, Math.min(w * 0.018, 8));
+                const inset = borderWidth / 2;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(inset + radius, inset);
+                ctx.lineTo(w - inset - radius, inset);
+                ctx.quadraticCurveTo(w - inset, inset, w - inset, inset + radius);
+                ctx.lineTo(w - inset, h - inset - radius);
+                ctx.quadraticCurveTo(w - inset, h - inset, w - inset - radius, h - inset);
+                ctx.lineTo(inset + radius, h - inset);
+                ctx.quadraticCurveTo(inset, h - inset, inset, h - inset - radius);
+                ctx.lineTo(inset, inset + radius);
+                ctx.quadraticCurveTo(inset, inset, inset + radius, inset);
+                ctx.closePath();
+                ctx.lineWidth = borderWidth;
+                const grad = ctx.createLinearGradient(0, 0, w*0.4, h);
+                grad.addColorStop(0, frameColor);
+                grad.addColorStop(1, shadeColor(frameColor, -20));
+                ctx.strokeStyle = grad;
+                ctx.stroke();
+                // 按键
+                ctx.fillStyle = shadeColor(frameColor, -25);
+                ctx.fillRect(0, h*0.25, borderWidth*1.2, h*0.045);
+                ctx.fillRect(0, h*0.32, borderWidth*1.2, h*0.045);
+                ctx.fillRect(w - borderWidth*1.2, h*0.18, borderWidth*1.2, h*0.055);
+                ctx.fillRect(0, h*0.09, borderWidth*0.8, h*0.04);
+                ctx.restore();
+            }
+            function shadeColor(color, percent) {
+                if(!color.startsWith('#')) return color;
+                let r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+                r = Math.min(255, Math.max(0, r+percent)); g = Math.min(255, Math.max(0, g+percent)); b = Math.min(255, Math.max(0, b+percent));
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                    if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+                    this.moveTo(x+r, y); this.lineTo(x+w-r, y); this.quadraticCurveTo(x+w, y, x+w, y+r);
+                    this.lineTo(x+w, y+h-r); this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                    this.lineTo(x+r, y+h); this.quadraticCurveTo(x, y+h, x, y+h-r);
+                    this.lineTo(x, y+r); this.quadraticCurveTo(x, y, x+r, y);
+                    return this;
+                };
+            }
+            
+            // 保存设计图 (下载)
+            document.getElementById('saveImg').addEventListener('click', async () => {
+                const blob = await drawFinalWithFrame(0.95);
+                const link = document.createElement('a');
+                link.download = 'iPhone.jpg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast('✅ 已保存设计图 (iPhone.jpg)', 2000);
+            });
+            
+            // 预览设计图 (新窗口查看，绕过系统安全警告)
+            document.getElementById('previewImg').addEventListener('click', async () => {
+                const blob = await drawFinalWithFrame(0.95);
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                // 延迟释放 URL，确保新窗口已经加载
+                setTimeout(() => URL.revokeObjectURL(url), 300);
+                showToast('📷 已在新的浏览器标签页中打开预览', 2000);
+            });
+            
+            // ---------- 事件绑定 ----------
+            document.getElementById('uploadBg').addEventListener('change', (e) => { if(e.target.files[0]) { const reader = new FileReader(); reader.onload = ev => loadBackgroundFromURL(ev.target.result); reader.readAsDataURL(e.target.files[0]); } });
+            document.getElementById('uploadOverlay').addEventListener('change', (e) => { if(e.target.files[0]) { const reader = new FileReader(); reader.onload = ev => loadOverlayFromURL(ev.target.result); reader.readAsDataURL(e.target.files[0]); } });
+            window.addEventListener('paste', (e) => { for(let item of e.clipboardData.items) if(item.type.indexOf('image')!==-1) { e.preventDefault(); const blob=item.getAsFile(); const reader=new FileReader(); reader.onload=ev=>loadOverlayFromURL(ev.target.result); reader.readAsDataURL(blob); break; } });
+            document.getElementById('selectBg').addEventListener('click', () => { activeType='bg'; activeOverlayId=null; activeTextId=null; updateActiveUI(); drawCanvas(); showToast("当前编辑：背景图", 800); });
+            document.getElementById('selectOverlayHint').addEventListener('click', () => { if(overlayImages.length>0) showToast("请在左侧叠加图列表中选中要编辑的图片", 1200); else showToast("暂无叠加图", 1000); });
+            document.getElementById('selectTextHint').addEventListener('click', () => { if(textLayers.length>0) showToast("请在左侧文字列表中选中文字", 1200); else showToast("暂无文字", 1000); });
+            document.getElementById('addTextBtn').addEventListener('click', ()=>{ let txt=document.getElementById('textInput').value.trim(); if(txt==="") txt="✨ 灵感 ✨"; addNewText(txt, document.getElementById('textColorPicker').value, document.getElementById('fontSelect').value); });
+            document.getElementById('updateTextBtn').addEventListener('click', ()=>{ let txt=document.getElementById('textInput').value.trim(); if(txt==="") txt="✏️ 编辑"; updateCurrentText(txt, document.getElementById('textColorPicker').value, document.getElementById('fontSelect').value); });
+            document.getElementById('deleteSelectedBtn').addEventListener('click', deleteCurrentLayer);
+            document.getElementById('textRotateLeft').addEventListener('click', () => { if(activeType === 'text' && activeTextId) { const txt = textLayers.find(t => t.id === activeTextId); if(txt) modifyAndRedraw(() => { txt.rotate -= 90; }); } else showToast("请先选中文字", 800); });
+            document.getElementById('textRotateRight').addEventListener('click', () => { if(activeType === 'text' && activeTextId) { const txt = textLayers.find(t => t.id === activeTextId); if(txt) modifyAndRedraw(() => { txt.rotate += 90; }); } else showToast("请先选中文字", 800); });
+            const scaleRange = document.getElementById('scaleRange');
+            scaleRange.addEventListener('input', (e) => { const val = e.target.value / 100; if(activeType === 'bg' && backgroundImg && !backgroundImg.isWhitePlaceholder) setCanvasSizeByScale(val, true); else if(activeType === 'overlay' && activeOverlayId) { const ov = overlayImages.find(o => o.id === activeOverlayId); if(ov) modifyAndRedraw(() => { const cx = ov.x + (ov.originW*ov.scale)/2, cy = ov.y + (ov.originH*ov.scale)/2; ov.scale = val; const newW = ov.originW*val, newH = ov.originH*val; let newX = cx - newW/2, newY = cy - newH/2; const clamped = clampRect(newX, newY, newW, newH); ov.x = clamped.x; ov.y = clamped.y; }); } else if(activeType === 'text' && activeTextId) { const txt = textLayers.find(t => t.id === activeTextId); if(txt) modifyAndRedraw(() => { const cx = txt.x + txt.w/2, cy = txt.y + txt.h/2; txt.scale = val; updateTextBounds(txt); let newX = cx - txt.w/2, newY = cy - txt.h/2; const clamped = clampRect(newX, newY, txt.w, txt.h); txt.x = clamped.x; txt.y = clamped.y; }); } });
+            ['alignLeft','alignRight','alignTop','alignBottom','centerH','centerV'].forEach((id,idx)=>{ document.getElementById(id).addEventListener('click',()=>{ const types=['left','right','top','bottom','centerH','centerV']; if(activeType==='overlay'&&activeOverlayId){ const ov=overlayImages.find(o=>o.id===activeOverlayId); if(ov) modifyAndRedraw(()=>{ let w=ov.originW*ov.scale, h=ov.originH*ov.scale, newX=ov.x, newY=ov.y; if(types[idx]==='left') newX=0; else if(types[idx]==='right') newX=CANVAS_W-w; else if(types[idx]==='top') newY=0; else if(types[idx]==='bottom') newY=CANVAS_H-h; else if(types[idx]==='centerH') newX=(CANVAS_W-w)/2; else newY=(CANVAS_H-h)/2; const clamped=clampRect(newX,newY,w,h); ov.x=clamped.x; ov.y=clamped.y; }); } else if(activeType==='text'&&activeTextId){ const txt=textLayers.find(t=>t.id===activeTextId); if(txt) modifyAndRedraw(()=>{ let newX=txt.x, newY=txt.y; if(types[idx]==='left') newX=0; else if(types[idx]==='right') newX=CANVAS_W-txt.w; else if(types[idx]==='top') newY=0; else if(types[idx]==='bottom') newY=CANVAS_H-txt.h; else if(types[idx]==='centerH') newX=(CANVAS_W-txt.w)/2; else newY=(CANVAS_H-txt.h)/2; const clamped=clampRect(newX,newY,txt.w,txt.h); txt.x=clamped.x; txt.y=clamped.y; }); } }); });
+            document.getElementById('resetAll').addEventListener('click',()=>{ if(backgroundImg && !backgroundImg.isWhitePlaceholder) setCanvasSizeByScale(1.0, true); for(let ov of overlayImages){ let w=ov.originW*ov.scale, h=ov.originH*ov.scale; let newX=(CANVAS_W-w)/2, newY=CANVAS_H*0.25; const clamped=clampRect(newX,newY,w,h); ov.x=clamped.x; ov.y=clamped.y; ov.scale=0.5; ov.rotate=0; } for(let txt of textLayers){ let newX=(CANVAS_W-txt.w)/2, newY=(CANVAS_H-txt.h)/2; const clamped=clampRect(newX,newY,txt.w,txt.h); txt.x=clamped.x; txt.y=clamped.y; txt.scale=0.85; txt.rotate=0; updateTextBounds(txt); } drawCanvas(); autoSave(); updateActiveUI(); renderOverlayListUI(); renderTextListUI(); showToast("已重置所有图层位置",1000); });
+            document.getElementById('clearStorageBtn').addEventListener('click',()=>{ localStorage.removeItem('iPhone17Pro_Designer'); location.reload(); });
+            document.getElementById('toFront').addEventListener('click',()=>{ if(activeType==='overlay'&&activeOverlayId){ const ov=overlayImages.find(o=>o.id===activeOverlayId); if(ov) modifyAndRedraw(()=>{ ov.zIndex=Math.max(...overlayImages.map(o=>o.zIndex),...textLayers.map(t=>t.zIndex),10)+1; }); } else if(activeType==='text'&&activeTextId){ const txt=textLayers.find(t=>t.id===activeTextId); if(txt) modifyAndRedraw(()=>{ txt.zIndex=Math.max(...overlayImages.map(o=>o.zIndex),...textLayers.map(t=>t.zIndex),10)+1; }); } });
+            document.getElementById('toBack').addEventListener('click',()=>{ if(activeType==='overlay'&&activeOverlayId){ const ov=overlayImages.find(o=>o.id===activeOverlayId); if(ov) modifyAndRedraw(()=>{ ov.zIndex=Math.min(...overlayImages.map(o=>o.zIndex),...textLayers.map(t=>t.zIndex),2)-1; }); } else if(activeType==='text'&&activeTextId){ const txt=textLayers.find(t=>t.id===activeTextId); if(txt) modifyAndRedraw(()=>{ txt.zIndex=Math.min(...overlayImages.map(o=>o.zIndex),...textLayers.map(t=>t.zIndex),2)-1; }); } });
+            const borderColorPicker = document.getElementById('borderColorPicker'); borderColorPicker.addEventListener('input', (e)=>{ borderColor=e.target.value; autoSave(); drawCanvas(); });
+            document.querySelectorAll('.border-color-preset').forEach(btn=>{ btn.addEventListener('click',()=>{ borderColor=btn.getAttribute('data-color'); borderColorPicker.value=borderColor; autoSave(); drawCanvas(); }); });
+            
+            // 拖动交互
+            canvas.addEventListener('mousedown', (e)=>{ e.preventDefault(); const pos=getMousePos(e); for(let txt of [...textLayers].reverse()) if(hitTestText(pos.x,pos.y,txt)) { activeType='text'; activeTextId=txt.id; activeOverlayId=null; updateActiveUI(); renderTextListUI(); renderOverlayListUI(); isDragging=true; dragOffset.x=pos.x-txt.x; dragOffset.y=pos.y-txt.y; drawCanvas(); return; } for(let ov of [...overlayImages].reverse()) if(hitTestOverlay(pos.x,pos.y,ov)){ activeType='overlay'; activeOverlayId=ov.id; activeTextId=null; updateActiveUI(); renderOverlayListUI(); renderTextListUI(); isDragging=true; dragOffset.x=pos.x-ov.x; dragOffset.y=pos.y-ov.y; drawCanvas(); return; } activeType='bg'; activeOverlayId=null; activeTextId=null; updateActiveUI(); drawCanvas(); });
+            window.addEventListener('mousemove', (e)=>{ if(!isDragging) return; e.preventDefault(); const pos=getMousePos(e); if(activeType==='text'&&activeTextId){ const txt=textLayers.find(t=>t.id===activeTextId); if(txt) modifyAndRedraw(()=>{ let newX=pos.x-dragOffset.x, newY=pos.y-dragOffset.y; const clamped=clampRect(newX,newY,txt.w,txt.h); txt.x=clamped.x; txt.y=clamped.y; }); } else if(activeType==='overlay'&&activeOverlayId){ const ov=overlayImages.find(o=>o.id===activeOverlayId); if(ov) modifyAndRedraw(()=>{ let newX=pos.x-dragOffset.x, newY=pos.y-dragOffset.y; const w=ov.originW*ov.scale, h=ov.originH*ov.scale; const clamped=clampRect(newX,newY,w,h); ov.x=clamped.x; ov.y=clamped.y; }); } });
+            window.addEventListener('mouseup',()=>{ isDragging=false; });
+            canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); const touch=e.touches[0]; const pos=getMousePos({ clientX:touch.clientX, clientY:touch.clientY }); for(let txt of [...textLayers].reverse()) if(hitTestText(pos.x,pos.y,txt)) { activeType='text'; activeTextId=txt.id; activeOverlayId=null; updateActiveUI(); renderTextListUI(); renderOverlayListUI(); isDragging=true; dragOffset.x=pos.x-txt.x; dragOffset.y=pos.y-txt.y; drawCanvas(); return; } for(let ov of [...overlayImages].reverse()) if(hitTestOverlay(pos.x,pos.y,ov)){ activeType='overlay'; activeOverlayId=ov.id; activeTextId=null; updateActiveUI(); renderOverlayListUI(); renderTextListUI(); isDragging=true; dragOffset.x=pos.x-ov.x; dragOffset.y=pos.y-ov.y; drawCanvas(); return; } },{passive:false});
+            window.addEventListener('touchmove', (e)=>{ if(!isDragging) return; e.preventDefault(); const touch=e.touches[0]; const pos=getMousePos({ clientX:touch.clientX, clientY:touch.clientY }); if(activeType==='text'&&activeTextId){ const txt=textLayers.find(t=>t.id===activeTextId); if(txt) modifyAndRedraw(()=>{ let newX=pos.x-dragOffset.x, newY=pos.y-dragOffset.y; const clamped=clampRect(newX,newY,txt.w,txt.h); txt.x=clamped.x; txt.y=clamped.y; }); } else if(activeType==='overlay'&&activeOverlayId){ const ov=overlayImages.find(o=>o.id===activeOverlayId); if(ov) modifyAndRedraw(()=>{ let newX=pos.x-dragOffset.x, newY=pos.y-dragOffset.y; const w=ov.originW*ov.scale, h=ov.originH*ov.scale; const clamped=clampRect(newX,newY,w,h); ov.x=clamped.x; ov.y=clamped.y; }); } },{passive:false});
+            window.addEventListener('touchend',()=>{ isDragging=false; });
+            
+            // 启动白板
+            (async function init() {
+                const white = await createWhiteBackgroundImage(CANVAS_W, CANVAS_H);
+                backgroundImg = { img: white, x:0, y:0, scale:1, rotate:0, originW:CANVAS_W, originH:CANVAS_H, isWhitePlaceholder: true };
+                drawCanvas(); renderOverlayListUI(); renderTextListUI(); updateActiveUI();
+            })();
+        })();
+    </script>
 </body>
 </html>
