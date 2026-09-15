@@ -1,9 +1,149 @@
-<!-- 使用微信开放标签的方式 -->
-<wx-open-launch-weapp id="launch-btn" username="你的小程序原始ID" path="pages/index/index">
-  <template>
-    <img src="https://i.postimg.cc/50ncQY42/photo-2026-06-09-18-27-16.jpg" alt="点我跳转微信" />
-  </template>
-</wx-open-launch-weapp>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫码保存工具</title>
+    <!-- 引入 html2canvas 库用于截图 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #808080; /* 灰色背景，模仿截图 */
+            font-family: "Microsoft YaHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-<!-- 使用 URL Scheme 的方式 -->
-<a href="weixin://">点击跳转到微信</a>
+        /* 截图区域容器 */
+        #capture-area {
+            background-color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px; /* 限制最大宽度 */
+            box-sizing: border-box;
+        }
+
+        /* 图片样式 */
+        .qr-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        /* 按钮通用样式 */
+        .action-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-align: center;
+            color: #e74c3c; /* 红色字体 */
+            background-color: #f0f0f0; /* 浅灰背景，根据截图调整 */
+        }
+
+        .action-btn:active {
+            opacity: 0.7;
+        }
+
+        /* 为了美观，稍微调整按钮颜色，你也可以改成透明背景 */
+        #btn-save {
+            background-color: #fff;
+            border: 2px solid #e74c3c;
+        }
+
+        #btn-wechat {
+            background-color: #fff;
+            border: 2px solid #e74c3c;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 这是将被截图保存的区域 -->
+    <div id="capture-area">
+        <!-- 请将 src 替换为你实际的图片地址 -->
+        <img src="qr-code.png" alt="扫码图" class="qr-image" id="qrImg">
+        
+        <button class="action-btn" id="btn-save">点击这里截图</button>
+        <button class="action-btn" id="btn-wechat">点击这里打开微信</button>
+    </div>
+
+    <script>
+        // 1. 截图保存功能
+        document.getElementById('btn-save').addEventListener('click', function() {
+            const element = document.getElementById('capture-area');
+            
+            // 显示加载提示（可选）
+            const originalText = this.innerText;
+            this.innerText = "正在生成...";
+
+            html2canvas(element, {
+                scale: 2, // 提高清晰度
+                useCORS: true, // 允许跨域图片
+                backgroundColor: null // 保持背景透明或原色
+            }).then(canvas => {
+                // 将 canvas 转换为图片 URL
+                const imgData = canvas.toDataURL('image/png');
+                
+                // 创建一个临时的 <a> 标签来触发下载
+                const link = document.createElement('a');
+                link.download = '扫码图片_' + new Date().getTime() + '.png';
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // 恢复按钮文字
+                this.innerText = originalText;
+                alert("图片已保存，请到相册查看！");
+            }).catch(err => {
+                console.error("截图失败:", err);
+                this.innerText = originalText;
+                alert("截图失败，请重试");
+            });
+        });
+
+        // 2. 打开微信功能
+        document.getElementById('btn-wechat').addEventListener('click', function() {
+            // 尝试唤起微信 App
+            // 注意：浏览器无法直接跳转到微信内部的“扫一扫”界面，
+            // 只能尝试打开微信 App，用户需手动点击右上角“+” -> 扫一扫。
+            
+            const weixinScheme = 'weixin://';
+            
+            // 检测是否为移动端
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                // 尝试跳转
+                window.location.href = weixinScheme;
+                
+                // 设置一个定时器，如果几秒后还在当前页面，说明跳转失败（未安装微信或浏览器拦截）
+                setTimeout(function() {
+                    // 这里可以做个判断，如果页面还在，提示用户手动打开微信
+                    // 但在很多浏览器中，这会直接抛出错误，所以通常不处理
+                }, 2000);
+            } else {
+                alert("请在手机端打开此页面使用微信功能。");
+            }
+        });
+    </script>
+</body>
+</html>
