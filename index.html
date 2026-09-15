@@ -2,148 +2,70 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>请长按下方二维码领菜</title>
-    <!-- 引入 html2canvas 库用于截图 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>扫码跳转微信</title>
     <style>
-        /* 页面基础设置，白底，居中 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #ffffff; 
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            padding: 20px;
         }
-
-        /* 整个截图区域的容器 */
-        #capture-area {
-            background-color: white;
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 400px; 
-            box-sizing: border-box;
-        }
-
-        /* 二维码图片的容器（用来裁剪图片） */
-        .qr-img-box {
-            width: 100%;
-            max-width: 280px; 
-            height: 280px;    
-            overflow: hidden; 
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer; /* 增加鼠标手型指针，提示可点击 */
-        }
-
-        /* 二维码图片本身 */
-        .qr-img-box img {
-            width: 100%;
+        .qrcode-img {
+            width: 80%;
+            max-width: 320px;
             height: auto;
-            margin-top: -5%; 
+            margin-bottom: 30px;
+            border-radius: 8px;
         }
-
-        /* 按钮样式 */
-        .action-btn {
-            width: 100%;
-            max-width: 280px; 
-            padding: 15px 0;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
+        .btn {
+            display: block;
+            width: 90%;
+            max-width: 360px;
+            padding: 16px 0;
+            margin-bottom: 16px;
             text-align: center;
-            color: #e74c3c; 
-            background-color: #ffffff; 
-            border: 1px solid #e74c3c; 
-            outline: none;
-            -webkit-tap-highlight-color: transparent; 
+            font-size: 16px;
+            font-weight: 500;
+            color: #e60012;
+            background-color: #ffffff;
+            border: 1px solid #e60012;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        .action-btn:active {
-            background-color: #fce8e6; 
-        }
+        .btn:active { background-color: #fff5f5; }
     </style>
 </head>
 <body>
 
-    <!-- 这是将被截图保存的区域 -->
-    <div id="capture-area">
-        
-        <!-- 给图片容器添加了 id="clickable-image" 用于绑定点击事件 -->
-        <div class="qr-img-box" id="clickable-image">
-            <img src="https://i.postimg.cc/bJNn9WhB/qrcode-wx6b6c1b15ec6acb4e-customer-21891.jpg" alt="扫码图" crossorigin="anonymous">
-        </div>
-        
-        <button class="action-btn" id="btn-save">①请先截图二维码</button>
-        <button class="action-btn" id="btn-wechat">②点击这里打开微信扫一扫</button>
-    </div>
+    <img class="qrcode-img" src="https://i.postimg.cc/bJNn9WhB/qrcode-wx6b6c1b15ec6acb4e-customer-21891.jpg" alt="二维码">
+
+    <button class="btn" onclick="takeScreenshot()">点击这里截图</button>
+
+    <button class="btn" onclick="openWeChatScan()">点击这里打开微信扫一扫</button>
 
     <script>
-        // 定义一个通用的“尝试打开微信”函数
-        function openWeChat() {
-            const weixinScheme = 'weixin://';
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            if (isMobile) {
-                // 弹出提示，因为浏览器无法直接进扫一扫
-                alert("正在尝试打开微信...\n如果没有自动跳转，请手动打开微信，点击右上角【+】选择【扫一扫】。");
-                // 尝试跳转
-                window.location.href = weixinScheme;
-            } else {
-                alert("请在手机端打开此页面使用微信功能。");
-            }
+        function takeScreenshot() {
+            alert("请使用手机系统自带的截屏功能（通常是同时按电源键+音量减键）保存此二维码。");
         }
 
-        // 1. 截图保存功能
-        document.getElementById('btn-save').addEventListener('click', function() {
-            const element = document.getElementById('capture-area');
-            const btn = this;
-            
-            const originalText = btn.innerText;
-            btn.innerText = "正在生成...";
-            btn.disabled = true;
-
-            html2canvas(element, {
-                scale: 2, 
-                useCORS: true, 
-                backgroundColor: "#ffffff" 
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                
-                const link = document.createElement('a');
-                link.download = '扫码图片_' + new Date().getTime() + '.png';
-                link.href = imgData;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                btn.innerText = originalText;
-                btn.disabled = false;
-                alert("图片已保存！请到相册或下载文件夹查看。");
-            }).catch(err => {
-                console.error("截图失败:", err);
-                btn.innerText = originalText;
-                btn.disabled = false;
-                alert("截图失败，请重试");
-            });
-        });
-
-        // 2. 点击按钮打开微信
-        document.getElementById('btn-wechat').addEventListener('click', openWeChat);
-
-        // 3. 【新增功能】点击图片打开微信
-        document.getElementById('clickable-image').addEventListener('click', openWeChat);
-
+        function openWeChatScan() {
+            var weixinScheme = "weixin://scanqrcode";
+            window.location.href = weixinScheme;
+            setTimeout(function() {
+                if (!document.hidden) {
+                    alert("如果无法跳转，请尝试：\n1. 使用手机自带浏览器打开。\n2. 或者长按上方二维码保存，再打开微信扫一扫从相册识别。");
+                }
+            }, 2000);
+        }
     </script>
+
 </body>
 </html>
