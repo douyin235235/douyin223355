@@ -34,7 +34,7 @@
         /* 图片样式 */
         .qr-image {
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
             height: auto;
             display: block;
             margin-bottom: 20px;
@@ -43,7 +43,7 @@
         /* 按钮通用样式 */
         .action-btn {
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
             padding: 15px;
             margin-top: 15px;
             border: none;
@@ -54,32 +54,22 @@
             transition: opacity 0.2s;
             text-align: center;
             color: #e74c3c; /* 红色字体 */
-            background-color: #f0f0f0; /* 浅灰背景，根据截图调整 */
+            background-color: #fff; /* 白色背景 */
+            border: 2px solid #e74c3c; /* 红色边框 */
         }
 
         .action-btn:active {
             opacity: 0.7;
+            background-color: #fce8e6;
         }
-
-        /* 为了美观，稍微调整按钮颜色，你也可以改成透明背景 */
-        #btn-save {
-            background-color: #fff;
-            border: 2px solid #e74c3c;
-        }
-
-        #btn-wechat {
-            background-color: #fff;
-            border: 2px solid #e74c3c;
-        }
-
     </style>
 </head>
 <body>
 
     <!-- 这是将被截图保存的区域 -->
     <div id="capture-area">
-        <!-- 请将 src 替换为你实际的图片地址 -->
-        <img src="qr-code.png" alt="扫码图" class="qr-image" id="qrImg">
+        <!-- 已经替换为你提供的图片链接 -->
+        <img src="https://i.postimg.cc/bJNn9WhB/qrcode-wx6b6c1b15ec6acb4e-customer-21891.jpg" alt="扫码图" class="qr-image" id="qrImg" crossorigin="anonymous">
         
         <button class="action-btn" id="btn-save">点击这里截图</button>
         <button class="action-btn" id="btn-wechat">点击这里打开微信</button>
@@ -89,15 +79,18 @@
         // 1. 截图保存功能
         document.getElementById('btn-save').addEventListener('click', function() {
             const element = document.getElementById('capture-area');
+            const btn = this;
             
-            // 显示加载提示（可选）
-            const originalText = this.innerText;
-            this.innerText = "正在生成...";
+            // 更改按钮文字提示用户
+            const originalText = btn.innerText;
+            btn.innerText = "正在生成...";
+            btn.disabled = true;
 
             html2canvas(element, {
-                scale: 2, // 提高清晰度
-                useCORS: true, // 允许跨域图片
-                backgroundColor: null // 保持背景透明或原色
+                scale: 2, // 提高清晰度（2倍缩放）
+                useCORS: true, // 允许跨域图片（针对网络图片）
+                allowTaint: false, // 不允许污染画布，防止下载失败
+                backgroundColor: "#ffffff" // 确保截图背景为白色
             }).then(canvas => {
                 // 将 canvas 转换为图片 URL
                 const imgData = canvas.toDataURL('image/png');
@@ -110,20 +103,22 @@
                 link.click();
                 document.body.removeChild(link);
 
-                // 恢复按钮文字
-                this.innerText = originalText;
-                alert("图片已保存，请到相册查看！");
+                // 恢复按钮状态
+                btn.innerText = originalText;
+                btn.disabled = false;
+                alert("图片已保存，请到手机相册或电脑下载文件夹查看！");
             }).catch(err => {
                 console.error("截图失败:", err);
-                this.innerText = originalText;
-                alert("截图失败，请重试");
+                btn.innerText = originalText;
+                btn.disabled = false;
+                alert("截图失败，可能是网络图片跨域限制。请尝试将图片下载到本地并替换src路径。");
             });
         });
 
         // 2. 打开微信功能
         document.getElementById('btn-wechat').addEventListener('click', function() {
             // 尝试唤起微信 App
-            // 注意：浏览器无法直接跳转到微信内部的“扫一扫”界面，
+            // 注意：浏览器安全限制，无法直接跳转到微信内部的“扫一扫”界面
             // 只能尝试打开微信 App，用户需手动点击右上角“+” -> 扫一扫。
             
             const weixinScheme = 'weixin://';
@@ -132,16 +127,11 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
             if (isMobile) {
-                // 尝试跳转
+                // 在移动端尝试跳转
                 window.location.href = weixinScheme;
-                
-                // 设置一个定时器，如果几秒后还在当前页面，说明跳转失败（未安装微信或浏览器拦截）
-                setTimeout(function() {
-                    // 这里可以做个判断，如果页面还在，提示用户手动打开微信
-                    // 但在很多浏览器中，这会直接抛出错误，所以通常不处理
-                }, 2000);
             } else {
-                alert("请在手机端打开此页面使用微信功能。");
+                // 如果是电脑浏览器打开
+                alert("请在手机端打开此页面，点击后才能唤起微信App。");
             }
         });
     </script>
