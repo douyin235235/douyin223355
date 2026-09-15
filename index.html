@@ -1,115 +1,144 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>微信扫码打开</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(160deg, #e8f5e9 0%, #f5f7fa 100%);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 20px;
-    }
-    .card {
-      width: 100%;
-      max-width: 360px;
-      background: #fff;
-      border-radius: 24px;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.1);
-      padding: 32px 24px;
-      text-align: center;
-    }
-    .logo {
-      width: 64px; height: 64px;
-      margin: 0 auto 18px;
-      background: linear-gradient(145deg, #07C160, #05a84e);
-      border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 10px 20px -8px rgba(7,193,96,0.5);
-    }
-    .logo svg { width: 38px; height: 38px; fill: #fff; }
-    h1 {
-      font-size: 21px;
-      font-weight: 600;
-      color: #1f2e3d;
-      margin-bottom: 6px;
-    }
-    .sub {
-      font-size: 14px;
-      color: #6b7a8a;
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-    .qr-wrap {
-      background: #f8fafc;
-      border: 1px solid #e8eef5;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: inline-block;
-    }
-    .qr-wrap img {
-      display: block;
-      width: 220px;
-      height: 220px;
-      border-radius: 12px;
-      background: #fff;
-    }
-    .tip {
-      font-size: 14px;
-      color: #3b4c5e;
-      line-height: 1.7;
-      background: #f0f9f3;
-      border-radius: 14px;
-      padding: 14px 16px;
-      text-align: left;
-      border-left: 4px solid #07C160;
-    }
-    .tip strong { color: #07C160; }
-    .tip .icon {
-      display: inline-block;
-      margin-right: 4px;
-    }
-    .footer-note {
-      font-size: 12px;
-      color: #a0aebc;
-      margin-top: 18px;
-      line-height: 1.5;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>正在打开微信...</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background:#f5f7fa;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:20px;
+  }
+  .box {
+    width:100%; max-width:340px;
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.08);
+    padding:36px 24px;
+    text-align:center;
+  }
+  .icon {
+    width:70px; height:70px;
+    margin:0 auto 20px;
+    background:linear-gradient(145deg,#07C160,#05a84e);
+    border-radius:22px;
+    display:flex; align-items:center; justify-content:center;
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(7,193,96,0.4); }
+    50% { transform:scale(1.06); box-shadow:0 0 0 14px rgba(7,193,96,0); }
+  }
+  .icon svg { width:42px; height:42px; fill:#fff; }
+  h1 { font-size:19px; color:#1f2e3d; font-weight:600; margin-bottom:8px; }
+  p { font-size:14px; color:#7a8a99; line-height:1.6; margin-bottom:24px; }
+  .btn {
+    display:block; width:100%;
+    padding:16px;
+    background:#07C160;
+    color:#fff;
+    border:none; border-radius:16px;
+    font-size:17px; font-weight:600;
+    cursor:pointer;
+    box-shadow:0 8px 18px -6px rgba(7,193,96,0.45);
+    -webkit-tap-highlight-color:transparent;
+    text-decoration:none;
+  }
+  .btn:active { background:#06ad56; }
+  .status { font-size:13px; color:#07C160; margin-top:14px; min-height:18px; }
+  .hint { font-size:12px; color:#a0aebc; margin-top:18px; line-height:1.6; }
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.5 4C4.91 4 2 6.69 2 10c0 1.84.93 3.48 2.4 4.6-.15.72-.5 1.86-1.1 2.6-.1.12.02.29.17.26 1.17-.25 2.45-.9 3.2-1.47.57.15 1.2.24 1.83.24 3.59 0 6.5-2.69 6.5-6s-2.91-6-6.5-6zm-2.1 4.3c.5 0 .9.4.9.9s-.4.9-.9.9-.9-.4-.9-.9.4-.9.9-.9zm4.2 0c.5 0 .9.4.9.9s-.4.9-.9.9-.9-.4-.9-.9.4-.9.9-.9z"/>
-        <path d="M22 15.5c0-2.5-2.2-4.6-5-4.9v.4c0 .16-.01.32-.03.48 2.1.4 3.53 1.9 3.53 3.5 0 1.2-.8 2.3-2.1 3.1.1.45.35 1.2.8 1.7.1.1-.02.24-.14.2-.9-.2-1.9-.7-2.5-1.15-.44.12-.9.18-1.38.18-2.7 0-4.97-1.6-5.5-3.7-.2.02-.4.03-.6.03-.28 0-.55-.02-.82-.05.47 2.9 2.98 5.1 6.02 5.1.63 0 1.24-.1 1.8-.27.75.5 2 1.1 3.17 1.35.15.03.27-.14.17-.26-.6-.74-.95-1.88-1.1-2.6 1.48-1.12 2.4-2.76 2.4-4.6z"/>
-      </svg>
-    </div>
-    <h1>微信扫码打开</h1>
-    <p class="sub">用微信扫一扫下方二维码<br>即可在微信中打开该内容</p>
 
-    <!-- 二维码：内容是您要打开的那张图片的链接 -->
-    <div class="qr-wrap">
-      <img 
-        src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fqxer.jike.love%2Fconsole%2Fupload%2FeZuYBR6VG.png%3FimageView%2Fw%2F500%2Fq%2Fh%2FExpires%2F1789459340" 
-        alt="微信扫码打开"
-      >
-    </div>
-
-    <div class="tip">
-      <span class="icon">📱</span><strong>使用方法：</strong><br>
-      1. 打开微信 → 点击右上角「+」<br>
-      2. 选择「扫一扫」<br>
-      3. 扫描上方二维码即可
-    </div>
-
-    <p class="footer-note">若无法扫码，可截图保存二维码后在微信中从相册识别</p>
+<div class="box">
+  <div class="icon">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.5 4C4.91 4 2 6.69 2 10c0 1.84.93 3.48 2.4 4.6-.15.72-.5 1.86-1.1 2.6-.1.12.02.29.17.26 1.17-.25 2.45-.9 3.2-1.47.57.15 1.2.24 1.83.24 3.59 0 6.5-2.69 6.5-6s-2.91-6-6.5-6zm-2.1 4.3c.5 0 .9.4.9.9s-.4.9-.9.9-.9-.4-.9-.9.4-.9.9-.9zm4.2 0c.5 0 .9.4.9.9s-.4.9-.9.9-.9-.4-.9-.9.4-.9.9-.9z"/>
+      <path d="M22 15.5c0-2.5-2.2-4.6-5-4.9v.4c0 .16-.01.32-.03.48 2.1.4 3.53 1.9 3.53 3.5 0 1.2-.8 2.3-2.1 3.1.1.45.35 1.2.8 1.7.1.1-.02.24-.14.2-.9-.2-1.9-.7-2.5-1.15-.44.12-.9.18-1.38.18-2.7 0-4.97-1.6-5.5-3.7-.2.02-.4.03-.6.03-.28 0-.55-.02-.82-.05.47 2.9 2.98 5.1 6.02 5.1.63 0 1.24-.1 1.8-.27.75.5 2 1.1 3.17 1.35.15.03.27-.14.17-.26-.6-.74-.95-1.88-1.1-2.6 1.48-1.12 2.4-2.76 2.4-4.6z"/>
+    </svg>
   </div>
+
+  <h1>正在打开微信...</h1>
+  <p>如果没有自动打开，请点击下方按钮</p>
+
+  <button class="btn" id="openBtn">📲 打开微信</button>
+
+  <div class="status" id="status"></div>
+  <div class="hint">提示：此操作需要您已安装微信 App</div>
+</div>
+
+<script>
+(function(){
+  var TARGET = 'https://qxer.jike.love/console/upload/eZuYBR6VG.png?imageView/w/500/q/h/Expires/1789459340';
+  var statusEl = document.getElementById('status');
+  var openBtn  = document.getElementById('openBtn');
+
+  function setStatus(txt){ statusEl.textContent = txt || ''; }
+
+  function isWeChat(){
+    return /micromessenger/i.test(navigator.userAgent);
+  }
+
+  // 跳转逻辑
+  function goWeChat(){
+    // 情况1：已经在微信里 → 直接打开图片
+    if (isWeChat()){
+      setStatus('已在微信中，正在打开...');
+      setTimeout(function(){ location.href = TARGET; }, 150);
+      return;
+    }
+
+    // 情况2：不在微信里 → 尝试唤起微信 App
+    setStatus('正在尝试唤起微信...');
+
+    var hidden = false;
+    function onVis(){ if (document.hidden) hidden = true; }
+    document.addEventListener('visibilitychange', onVis);
+
+    // 用 iframe 尝试唤起微信（比 location.href 更不容易被拦截）
+    try {
+      var ifr = document.createElement('iframe');
+      ifr.style.display = 'none';
+      ifr.src = 'weixin://';
+      document.body.appendChild(ifr);
+      setTimeout(function(){ try{ document.body.removeChild(ifr); }catch(e){} }, 800);
+    } catch(e){}
+
+    // 安卓再补一个 intent 尝试
+    if (/android/i.test(navigator.userAgent)) {
+      try {
+        var a = document.createElement('a');
+        a.href = 'intent://#Intent;scheme=weixin;end';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} }, 500);
+      } catch(e){}
+    }
+
+    // 1.5 秒后检查是否跳转成功
+    setTimeout(function(){
+      document.removeEventListener('visibilitychange', onVis);
+      if (!hidden && !document.hidden){
+        setStatus('⚠️ 未能自动打开，请点击上方按钮');
+      }
+    }, 1500);
+  }
+
+  // 点击按钮也执行同样的跳转
+  openBtn.addEventListener('click', goWeChat);
+
+  // 打开页面立即自动尝试
+  window.addEventListener('load', function(){
+    setTimeout(goWeChat, 300); // 轻微延迟，避免被浏览器拦截
+  });
+
+})();
+</script>
 </body>
 </html>
