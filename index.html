@@ -7,18 +7,15 @@
 </head>
 <body>
 <script>
-  // 将这里替换为你在小程序后台生成的 URL Scheme
-  var targetLink = "YOUR_LINK_HERE";
+  // ⚠️ 替换成你从 ImgBB 复制到的【直链】，不是现在的网页链接
+  var targetLink = "https://i.ibb.co/xxxxxx/photo-2025-07-30-17-23-44.jpg";
 
-  // 检测是否为微信内置浏览器（在微信里直接打开小程序更简单）
   var ua = navigator.userAgent.toLowerCase();
   var isWechat = ua.indexOf('micromessenger') !== -1;
 
   if (isWechat) {
-    // 如果在微信里，尝试直接打开（取决于后台配置的链接是否支持直接打开）
     window.location.href = targetLink;
   } else {
-    // 如果在外部浏览器，通过 URL Scheme 唤起微信
     window.location.href = targetLink;
   }
 </script>
