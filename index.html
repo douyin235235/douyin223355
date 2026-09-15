@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>扫码保存工具</title>
+    <title>扫码工具</title>
     <!-- 引入 html2canvas 库用于截图 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* 页面基础设置，白底，居中 */
         body {
             margin: 0;
             padding: 0;
-            background-color: #808080; /* 灰色背景 */
+            background-color: #ffffff; 
             font-family: "Microsoft YaHei", sans-serif;
             display: flex;
             flex-direction: column;
@@ -19,48 +20,58 @@
             min-height: 100vh;
         }
 
-        /* 截图区域容器 */
+        /* 整个截图区域的容器 */
         #capture-area {
             background-color: white;
-            padding: 20px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 400px; 
+            max-width: 400px; /* 适合手机屏幕的宽度 */
             box-sizing: border-box;
         }
 
-        /* 图片样式 */
-        .qr-image {
+        /* 二维码图片的容器（用来裁剪图片） */
+        .qr-img-box {
             width: 100%;
-            max-width: 350px;
-            height: auto;
-            display: block;
-            margin-bottom: 20px;
+            max-width: 280px; /* 控制二维码大小，和截图一致 */
+            height: 280px;    /* 高度和宽度一样，正方形 */
+            overflow: hidden; /* 隐藏超出的部分，实现裁剪 */
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* 按钮通用样式 */
+        /* 二维码图片本身 */
+        .qr-img-box img {
+            width: 100%;
+            height: auto;
+            /* 这里的负数 margin 是为了把原图底部的灰色部分裁掉，只保留上方二维码 */
+            /* 你可以根据实际图片的比例稍微调整这个 -20% 的数值 */
+            margin-top: -5%; 
+        }
+
+        /* 按钮样式 */
         .action-btn {
             width: 100%;
-            max-width: 350px;
-            padding: 15px;
-            margin-top: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
+            max-width: 280px; /* 和二维码宽度对齐 */
+            padding: 15px 0;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 16px;
             cursor: pointer;
-            transition: opacity 0.2s;
             text-align: center;
             color: #e74c3c; /* 红色字体 */
-            background-color: #fff; 
-            border: 2px solid #e74c3c; /* 红色边框 */
+            background-color: #ffffff; /* 白色背景 */
+            border: 1px solid #e74c3c; /* 红色边框 */
+            outline: none;
+            -webkit-tap-highlight-color: transparent; /* 去除手机点击高亮 */
         }
 
         .action-btn:active {
-            opacity: 0.7;
-            background-color: #fce8e6;
+            background-color: #fce8e6; /* 点击时变浅红 */
         }
     </style>
 </head>
@@ -68,8 +79,12 @@
 
     <!-- 这是将被截图保存的区域 -->
     <div id="capture-area">
-        <!-- 注意这里改成了本地图片路径。请确保图片已上传到同一目录，且名字一致 -->
-        <img src="qrcode.jpg" alt="扫码图" class="qr-image" id="qrImg">
+        
+        <!-- 这里使用容器+CSS裁剪的方式，去掉原图灰色的部分 -->
+        <div class="qr-img-box">
+            <!-- 使用你原图的高清链接 -->
+            <img src="https://i.postimg.cc/bJNn9WhB/qrcode-wx6b6c1b15ec6acb4e-customer-21891.jpg" alt="扫码图" crossorigin="anonymous">
+        </div>
         
         <button class="action-btn" id="btn-save">点击这里截图</button>
         <button class="action-btn" id="btn-wechat">点击这里打开微信扫一扫</button>
@@ -85,13 +100,15 @@
             btn.innerText = "正在生成...";
             btn.disabled = true;
 
+            // 使用 html2canvas 进行截图
             html2canvas(element, {
-                scale: 2, 
-                useCORS: true, 
-                backgroundColor: "#ffffff" 
+                scale: 2, // 提高清晰度（2倍缩放）
+                useCORS: true, // 允许跨域图片
+                backgroundColor: "#ffffff" // 确保背景是纯白的
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 
+                // 创建临时下载链接并触发下载
                 const link = document.createElement('a');
                 link.download = '扫码图片_' + new Date().getTime() + '.png';
                 link.href = imgData;
@@ -101,7 +118,7 @@
 
                 btn.innerText = originalText;
                 btn.disabled = false;
-                alert("图片已保存，请到相册查看！");
+                alert("图片已保存！请到相册或下载文件夹查看。");
             }).catch(err => {
                 console.error("截图失败:", err);
                 btn.innerText = originalText;
