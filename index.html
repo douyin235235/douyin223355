@@ -3,15 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>点击查看图片</title>
+    <title>跳转微信</title>
 </head>
 <body>
-    <!-- 这是一个按钮，点击后跳转到图片链接 -->
-    <a href="https://qxer.jike.love/console/upload/eZuYBR6VG.png?imageView/w/500/q/h/Expires/1789459340">
-        <button style="padding: 15px 30px; font-size: 18px;">点击查看大图</button>
-    </a>
+    <!-- 核心跳转链接 -->
+    <a href="weixin://">点击跳转微信</a>
+
+    <!-- 备用方案（关键，防止链接被拦截） -->
+    <p>如果你没有自动跳转，可以复制微信号：XXXXX</p>
     
-    <!-- 或者：直接在网页里显示这张图，用户滑动就能看 -->
-    <!-- <img src="这里填入你刚刚获取的图片链接" style="width:100%;" /> -->
+    <script>
+        // 检测是否为微信内置浏览器
+        const isWeixin = /MicroMessenger/i.test(navigator.userAgent);
+        
+        if (isWeixin) {
+            // 在微信内，可以直接使用官方推荐的链接
+            window.location.href = "weixin://dl/business/?t=XXXXX";
+        } else {
+            // 在非微信环境，提示用户
+            alert('请在微信中打开此页面');
+        }
+    </script>
 </body>
 </html>
